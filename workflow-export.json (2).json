@@ -1,95 +1,55 @@
-{
-  "name": "Project 2",
+
+  "name": "Project 1",
   "nodes": [
     {
       "parameters": {
-        "pollTimes": {
-          "item": [
+        "assignments": {
+          "assignments": [
             {
-              "mode": "everyX",
-              "value": 1,
-              "unit": "minutes"
+              "id": "dd0ddbc9-1773-4b75-a448-608b14864c6d",
+              "name": "input_text",
+              "value": "Explain what AI automation is in 3 bullet points",
+              "type": "string"
             }
           ]
         },
-        "maxResults": 5,
-        "filters": {}
+        "options": {}
       },
-      "type": "n8n-nodes-base.gmailTrigger",
-      "typeVersion": 1.4,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        -32,
-        0
+        160,
+        -64
       ],
-      "id": "4eee0960-fa94-42d9-81af-d43792a7ecce",
-      "name": "Gmail Trigger",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000,
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "TLmJpJEkXF8xveZz",
-          "name": "Gmail account"
-        }
-      }
+      "id": "39dd83af-ff38-4f68-b424-43ee9842e2b8",
+      "name": "Edit Fields"
     },
     {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": false,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "554111ee-19dd-47d3-aaf5-f72bed044711",
-              "leftValue": "={{ $json.Subject }}",
-              "rightValue": "=unsubscribe",
-              "operator": {
-                "type": "string",
-                "operation": "notContains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {
-          "ignoreCase": true
-        }
-      },
-      "type": "n8n-nodes-base.filter",
-      "typeVersion": 2.3,
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
       "position": [
-        96,
-        0
+        16,
+        -64
       ],
-      "id": "d3677bd9-3b9d-45ca-8f1e-d3013d6aa8be",
-      "name": "Filter"
+      "id": "ea73d172-0afb-4afc-ad1d-cf8f9f063647",
+      "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.Subject }}\n{{ $json.snippet }}\n{{ $('Gmail Trigger').item.json.From }}\n{{ $('Gmail Trigger').item.json.labels }}\n{{ $json.id }}\n{{ $json.threadId }}",
-        "messages": {
-          "messageValues": [
-            {
-              "message": "=You are an expert email summarizer.  When given an email, you will: 1. Write a one-line summary of what the email is about 2. Extract the sender name 3. List any action items required from the reader 4. Rate the urgency as: Low, Medium, or High  Return ONLY a JSON object in this exact format:\n{   \"summary\": \"\",\n    \"sender\": \"\",   \n    \"action_items\": [],   \n    \"urgency\": \"\" \n}"
-            }
-          ]
-        },
+        "text": "={{ $json.input_text }}",
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
-        416,
-        -16
+        448,
+        -64
       ],
-      "id": "c42d8e37-567c-4bb6-8f2b-d4c44a857746",
+      "id": "f646f5cf-f73a-4098-af82-8b70654f46f2",
       "name": "Basic LLM Chain",
-      "retryOnFail": false,
+      "retryOnFail": true,
       "waitBetweenTries": 3000
     },
     {
@@ -100,10 +60,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        544,
-        96
+        592,
+        48
       ],
-      "id": "0a587bc5-4d89-42ec-9084-a2d53a20c9ad",
+      "id": "7b30fa24-6b62-47ec-9732-eaf05316a743",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
@@ -114,26 +74,136 @@
     },
     {
       "parameters": {
-        "chatId": "8997603873",
-        "text": "={{ $json.text }}",
-        "additionalFields": {}
+        "sendTo": "aryanamjad1271@gmail.com",
+        "subject": "New AI response genrated",
+        "message": "={{ $json['Ai Response'] }}",
+        "options": {}
       },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
       "position": [
-        688,
-        -16
+        1056,
+        -80
       ],
-      "id": "224bc7f2-ecbe-4354-a751-46df3588f3db",
-      "name": "Send a text message",
-      "webhookId": "5005a734-7dfa-4786-9288-d7f576a0bf6f",
+      "id": "7b0efda7-3a28-45f5-b965-837c6d40db60",
+      "name": "Send a message",
+      "webhookId": "3b4feac3-7bff-40ac-8223-8217248c3e0d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TLmJpJEkXF8xveZz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab4097dd-483c-41a3-b8b7-065b9bfb733f",
+              "name": "Input",
+              "value": "={{ $('Edit Fields').item.json.input_text }}",
+              "type": "string"
+            },
+            {
+              "id": "381cd4e7-db2c-4732-962a-bebcd3dcc9bd",
+              "name": "Ai Response",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "74adc180-4718-47e9-abfd-af801bb97221",
+              "name": "Date",
+              "value": "={{ $now.toFormat('MMMM dd, yyyy') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        -64
+      ],
+      "id": "55dd303d-d277-4ad2-9756-d16d40a45815",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1yvODE0hV9F8L4DEa4oh6pRpJ0hHbF7FeM8Rqm0yGdiM",
+          "mode": "list",
+          "cachedResultName": "Project 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yvODE0hV9F8L4DEa4oh6pRpJ0hHbF7FeM8Rqm0yGdiM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yvODE0hV9F8L4DEa4oh6pRpJ0hHbF7FeM8Rqm0yGdiM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Input": "={{ $json.Input }}",
+            "Ai Response": "={{ $json['Ai Response'] }}",
+            "Date": "={{ $json.Date }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Input",
+              "displayName": "Input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ai Response",
+              "displayName": "Ai Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        -64
+      ],
+      "id": "b744059f-050e-45c2-8028-5a536438de3d",
+      "name": "Google sheet",
       "retryOnFail": true,
       "maxTries": 2,
       "waitBetweenTries": 2000,
       "credentials": {
-        "telegramApi": {
-          "id": "WhiOzKx7EA8lr6MJ",
-          "name": "Telegram account"
+        "googleSheetsOAuth2Api": {
+          "id": "4qlLr15r9SPl0mVK",
+          "name": "Google Sheets account"
         }
       },
       "onError": "continueErrorOutput"
@@ -149,8 +219,8 @@
           },
           "conditions": [
             {
-              "id": "c4c50bcf-70bc-4bec-9bdd-60b0caa00a9e",
-              "leftValue": "={{ $json.snippet }}{{ $json.id }}{{ $json.threadId }}",
+              "id": "ff1ff05c-16ce-49b0-9ca1-4789e48f3dc3",
+              "leftValue": "={{ $json.input_text }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -166,31 +236,31 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        256,
-        0
+        288,
+        -64
       ],
-      "id": "5dfb938d-7a4d-4b2f-83ba-9c3bf310ecac",
+      "id": "2d2e0440-ec06-4fb0-97db-049c2a151e4a",
       "name": "If"
     }
   ],
   "pinData": {},
   "connections": {
-    "Gmail Trigger": {
+    "Edit Fields": {
       "main": [
         [
           {
-            "node": "Filter",
+            "node": "If",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "If",
+            "node": "Edit Fields",
             "type": "main",
             "index": 0
           }
@@ -212,7 +282,29 @@
       "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Google sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
             "type": "main",
             "index": 0
           }
@@ -231,29 +323,27 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": true,
     "timeSavedMode": "fixed",
-    "callerPolicy": "workflowsFromSameOwner",
-    "timezone": "Asia/Karachi",
-    "errorWorkflow": "DSo1gCyMwj92y5Cy"
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "d434eea2-511a-4c01-8d51-3f7f5b6afea9",
+  "versionId": "0b7cb671-18ac-4cf7-8569-f7302bebfca8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "721cf6432c0f21dd1d3df6b8b81cb1ad833f6cd71ef46123545371f59d776c6e"
   },
   "nodeGroups": [],
-  "id": "nseQ711qj7h86Uk6",
+  "id": "W7BKSMalsx44Ekqq",
   "tags": [
     {
-      "updatedAt": "2026-07-15T02:54:48.407Z",
-      "createdAt": "2026-07-15T02:54:48.407Z",
-      "id": "idUIYRaCh2nVdOKF",
-      "name": "Email AI Summarizer"
+      "updatedAt": "2026-07-13T02:36:36.262Z",
+      "createdAt": "2026-07-13T02:36:36.262Z",
+      "id": "PnUr4p2K1M0hbjnt",
+      "name": "Text to Ai sheet"
     }
   ]
 }
