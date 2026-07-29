@@ -1,0 +1,259 @@
+{
+  "name": "Project 2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 1,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "maxResults": 5,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "4eee0960-fa94-42d9-81af-d43792a7ecce",
+      "name": "Gmail Trigger",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TLmJpJEkXF8xveZz",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "554111ee-19dd-47d3-aaf5-f72bed044711",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "=unsubscribe",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        96,
+        0
+      ],
+      "id": "d3677bd9-3b9d-45ca-8f1e-d3013d6aa8be",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Subject }}\n{{ $json.snippet }}\n{{ $('Gmail Trigger').item.json.From }}\n{{ $('Gmail Trigger').item.json.labels }}\n{{ $json.id }}\n{{ $json.threadId }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an expert email summarizer.  When given an email, you will: 1. Write a one-line summary of what the email is about 2. Extract the sender name 3. List any action items required from the reader 4. Rate the urgency as: Low, Medium, or High  Return ONLY a JSON object in this exact format:\n{   \"summary\": \"\",\n    \"sender\": \"\",   \n    \"action_items\": [],   \n    \"urgency\": \"\" \n}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        416,
+        -16
+      ],
+      "id": "c42d8e37-567c-4bb6-8f2b-d4c44a857746",
+      "name": "Basic LLM Chain",
+      "retryOnFail": false,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        544,
+        96
+      ],
+      "id": "0a587bc5-4d89-42ec-9084-a2d53a20c9ad",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "jmSNvrcJh5Ro8fPq",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8997603873",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        -16
+      ],
+      "id": "224bc7f2-ecbe-4354-a751-46df3588f3db",
+      "name": "Send a text message",
+      "webhookId": "5005a734-7dfa-4786-9288-d7f576a0bf6f",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "telegramApi": {
+          "id": "WhiOzKx7EA8lr6MJ",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c4c50bcf-70bc-4bec-9bdd-60b0caa00a9e",
+              "leftValue": "={{ $json.snippet }}{{ $json.id }}{{ $json.threadId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        256,
+        0
+      ],
+      "id": "5dfb938d-7a4d-4b2f-83ba-9c3bf310ecac",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "timezone": "Asia/Karachi",
+    "errorWorkflow": "DSo1gCyMwj92y5Cy"
+  },
+  "versionId": "d434eea2-511a-4c01-8d51-3f7f5b6afea9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "721cf6432c0f21dd1d3df6b8b81cb1ad833f6cd71ef46123545371f59d776c6e"
+  },
+  "nodeGroups": [],
+  "id": "nseQ711qj7h86Uk6",
+  "tags": [
+    {
+      "updatedAt": "2026-07-15T02:54:48.407Z",
+      "createdAt": "2026-07-15T02:54:48.407Z",
+      "id": "idUIYRaCh2nVdOKF",
+      "name": "Email AI Summarizer"
+    }
+  ]
+}
